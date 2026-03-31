@@ -6,7 +6,7 @@ import certifi
 import json
 import re
 
-API_TOKEN="AIzaSyAgBwXNEAhWo403mR94B3ZK6uvfKqe0_r4"
+API_TOKEN="YOUR_GOOGLE_API_TOKEN"
 
 def get_video(playlist, search_str):
     video_found = False
