@@ -9,12 +9,12 @@ import re
 API_TOKEN="YOUR_GOOGLE_API_TOKEN"
 
 def get_video(playlist, search_str):
-    video_found = False
     PAGE_TOKEN = ''
     next_page_exist = True
+    videos = []
 
     try:
-        while(not video_found and next_page_exist):
+        while next_page_exist:
             query = {
                 'part': 'snippet',
                 'playlistId': playlist,
@@ -32,34 +32,39 @@ def get_video(playlist, search_str):
                 data_json = json.loads(data)
                 next_page_exist = 'nextPageToken' in data_json
 
-                metadata = find_matching_title(data_json['items'], search_str)
+                found_videos = find_matching_title(data_json['items'], search_str)
                 if next_page_exist:
                     PAGE_TOKEN = data_json['nextPageToken']
                     print("Scanning:", PAGE_TOKEN)
                 else:
                     next_page_exist = False
 
-                if metadata is not None:
-                    video_found = True
-                    return metadata
+                if found_videos is not None:
+                    videos.extend(found_videos)
+
     except req_error.HTTPError as e:
         print(f'HTTP error: {e.code} {e.reason}')
     except req_error.URLError as e:
         print(f'URL error: {e.reason}')
 
-    return None
+    return videos if len(videos) > 0 else None
 
 
 def find_matching_title(items_arr, search_str):
+    matched = []
+
     for item in items_arr:
         title = item['snippet']['title']
         pattern = rf"{search_str}"
         match = re.search(pattern, title, re.IGNORECASE)
 
         if match:
-            return item
-    return None
+            matched.append(item)
+    return matched if len(matched) > 0 else None
         
+def colored(ansi_code, val):
+    return f"\033[38;5;{ansi_code}m{val}\033[0m"
+
 
 if __name__ == "__main__":
     if len(sys.argv) < 3:
@@ -70,14 +75,25 @@ if __name__ == "__main__":
     playlist_id = sys.argv[1]
     search_str = "\s".join(sys.argv[2:])
 
-    video_data = get_video(playlist_id, search_str)
+    video_arr = get_video(playlist_id, search_str)
     
-    if video_data is None:
+    if video_arr is None:
         print("No matching results were found in the playlist.")
         sys.exit()
     
-    video_id = video_data['snippet']['resourceId']['videoId']
-    formatted = f"https://youtube.com/watch?v={video_id}"
-    print(formatted)
+    for i, video_data in enumerate(video_arr):
+        video_id = video_data['snippet']['resourceId']['videoId']
+        formatted_link = f"https://youtube.com/watch?v={video_id}"
+
+        print(f"\n{colored(221, '#'*8)}  {colored(214, i+1)}  {colored(221, '#'*8)}")
+
+        print(
+            colored(99, "Title:"),
+            colored(135, video_data['snippet']['title'])
+        )
+        print(
+            colored(76, "Link:"),
+            colored(114, formatted_link)
+        )
     
 
