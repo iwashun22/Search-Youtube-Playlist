@@ -5,8 +5,11 @@ import sys
 import certifi
 import json
 import re
+from ssl import create_default_context
 
 API_TOKEN="YOUR_GOOGLE_API_TOKEN"
+
+context = create_default_context(cafile=certifi.where())
 
 def get_video(playlist, search_str):
     PAGE_TOKEN = ''
@@ -27,7 +30,7 @@ def get_video(playlist, search_str):
             query_string = urlencode(query)
             url = f'https://www.googleapis.com/youtube/v3/playlistItems?{query_string}'
 
-            with request.urlopen(url, cafile=certifi.where()) as response:
+            with request.urlopen(url, context=context) as response:
                 data = response.read().decode('utf-8')
                 data_json = json.loads(data)
                 next_page_exist = 'nextPageToken' in data_json
