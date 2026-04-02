@@ -75,9 +75,19 @@ jobs:
           API_TOKEN: ${{ secrets.YOUTUBE_V3_API_TOKEN }}
         run: cargo build --release --target ${{ matrix.target }} -j 1
 
+      - name: Prepare release artifact
+        run: |
+          mkdir -p dist
+          BIN="search-yt-pl"
+          if [[ "${{ matrix.os }}" == "windows" ]]; then
+            BIN="${BIN}.exe"
+          fi
+          PREFIX="${{ matrix.os }}"
+          cp target/${{ matrix.target }}/release/$BIN dist/${{ matrix.os }}-${{ matrix.arch }}-$BIN
+
       - name: Create GitHub Release and upload binaries
         uses: softprops/action-gh-release@v1
         with:
-          files: target/${{ matrix.target }}/release/search-yt-pl*
+          files: dist/*
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
