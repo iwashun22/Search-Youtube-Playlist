@@ -65,7 +65,9 @@ jobs:
           key: ${{ runner.os }}-${{ matrix.target }}-cargo-${{ hashFiles('**/Cargo.lock') }}
 
       - name: Build release binary
-        run: API_TOKEN=${{ secrets.YOUTUBE_V3_API_TOKEN }} cargo build --release --target ${{ matrix.target }} -j 2
+        env:
+          API_TOKEN: ${{ secrets.YOUTUBE_V3_API_TOKEN }}
+        run: cargo build --release --target ${{ matrix.target }} -j 1
 
       - name: Upload artifact
         uses: actions/upload-artifact@v6
