@@ -12,4 +12,6 @@ services:
     tty: true
     environment:
       TARGET: aarch64-apple-darwin
+    env_file:
+      - .env
 

@@ -1,3 +1,3 @@
 #!/bin/sh
 
-cargo build --target=$TARGET
+API_TOKEN=$API_TOKEN cargo build

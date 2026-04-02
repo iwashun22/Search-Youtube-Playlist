@@ -21,7 +21,7 @@ jobs:
         run: rustup target add aarch64-apple-darwin
 
       - name: Build release binary
-        run: cargo build --release --target aarch64-apple-darwin
+        run: API_TOKEN=${{ secrets.YOUTUBE_V3_API_TOKEN }} cargo build --release --target aarch64-apple-darwin
 
       - name: Upload artifact
         uses: actions/upload-artifact@v3
