@@ -8,6 +8,9 @@ jobs:
   build:
     name: Build on ${{ matrix.os }} ${{ matrix.arch }}
     runs-on: ${{ matrix.runner }}
+
+    timeout-minutes: 45
+
     strategy:
       matrix:
         include:
@@ -43,19 +46,26 @@ jobs:
 
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
       - name: Install Rust
-        uses: actions-rs/toolchain@v1
-        with:
-          toolchain: stable
-          override: true
+        uses: dtolnay/rust-toolchain@stable
 
       - name: Add ${{ matrix.os }} ${{ matrix.arch }} target
         run: rustup target add ${{ matrix.target }}
 
+        # Cache dependencies to speed up + reduce failures
+      - name: Cache cargo
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cargo/registry
+            ~/.cargo/git
+            target
+          key: ${{ runner.os }}-${{ matrix.target }}-cargo-${{ hashFiles('**/Cargo.lock') }}
+
       - name: Build release binary
-        run: API_TOKEN=${{ secrets.YOUTUBE_V3_API_TOKEN }} cargo build --release --target ${{ matrix.target }}
+        run: API_TOKEN=${{ secrets.YOUTUBE_V3_API_TOKEN }} cargo build --release --target ${{ matrix.target }} -j 2
 
       - name: Upload artifact
         uses: actions/upload-artifact@v6
