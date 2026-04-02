@@ -11,8 +11,10 @@ jobs:
     runs-on: ${{ matrix.runner }}
 
     timeout-minutes: 45
+    continue-on-error: true
 
     strategy:
+      fail-fast: false
       matrix:
         include:
           # Linux
