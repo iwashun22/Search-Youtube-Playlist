@@ -5,8 +5,42 @@ on:
     branches: [ main ]
 
 jobs:
-  build-macos:
-    runs-on: macos-latest
+  build:
+    name: Build on ${{ matrix.os }} ${{ matrix.arch }}
+    runs-on: ${{ matrix.runner }}
+    strategy:
+      matrix:
+        include:
+          # Linux
+          - os: linux
+            arch: x64
+            runner: ubuntu-latest
+            target: x86_64-unknown-linux-gnu
+          - os: linux
+            arch: arm64
+            runner: ubuntu-24.04-arm64
+            target: aarch64-unknown-linux-gnu
+
+          # Windows
+          - os: windows
+            arch: x64
+            runner: windows-latest
+            target: x86_64-pc-windows-gnu
+          - os: windows
+            arch: arm64
+            runner: windows-2025-arm64
+            target: aarch64-pc-windows-msvc
+
+          # macOS
+          - os: macos
+            arch: arm64
+            runner: macos-latest
+            target: aarch64-apple-darwin
+          - os: macos
+            arch: x64
+            runner: macos-13
+            target: x86_64-apple-darwin
+
     steps:
       - name: Checkout repository
         uses: actions/checkout@v3
@@ -17,14 +51,14 @@ jobs:
           toolchain: stable
           override: true
 
-      - name: Add macOS target (Apple Silicon)
-        run: rustup target add aarch64-apple-darwin
+      - name: Add ${{ matrix.os }} ${{ matrix.arch }} target
+        run: rustup target add ${{ matrix.target }}
 
       - name: Build release binary
-        run: API_TOKEN=${{ secrets.YOUTUBE_V3_API_TOKEN }} cargo build --release --target aarch64-apple-darwin
+        run: API_TOKEN=${{ secrets.YOUTUBE_V3_API_TOKEN }} cargo build --release --target ${{ matrix.target }}
 
       - name: Upload artifact
         uses: actions/upload-artifact@v3
         with:
-          name: macos-binary
-          path: target/aarch64-apple-darwin/release/search-yt-pl
+          name: ${{ matrix.os }}-${{ matrix.arch }}
+          path: target/${{ matrix.target }}/release/search-yt-pl
