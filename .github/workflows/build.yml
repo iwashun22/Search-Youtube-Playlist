@@ -2,7 +2,8 @@ name: Build Rust App
 
 on:
   push:
-    branches: [ main ]
+    tags:
+      - 'v*.*.*'
 
 jobs:
   build:
@@ -31,7 +32,7 @@ jobs:
             target: x86_64-pc-windows-gnu
           - os: windows
             arch: arm64
-            runner: windows-2025-arm64
+            runner: windows-latest
             target: aarch64-pc-windows-msvc
 
           # macOS
@@ -69,8 +70,9 @@ jobs:
           API_TOKEN: ${{ secrets.YOUTUBE_V3_API_TOKEN }}
         run: cargo build --release --target ${{ matrix.target }} -j 1
 
-      - name: Upload artifact
-        uses: actions/upload-artifact@v6
+      - name: Create GitHub Release and upload binaries
+        uses: softprops/action-gh-release@v1
         with:
-          name: ${{ matrix.os }}-${{ matrix.arch }}
-          path: target/${{ matrix.target }}/release/search-yt-pl
+          files: target/${{ matrix.target }}/release/search-yt-pl*
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
